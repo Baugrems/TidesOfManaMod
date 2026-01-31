@@ -1,0 +1,117 @@
+<form class="tides-mana ship-sheet" autocomplete="off">
+  <header class="sheet-header">
+    <img class="profile" src="{{actor.img}}" data-edit="img" title="{{actor.name}}" />
+    <div class="header-fields">
+      <h1 class="charname">
+        <input name="name" type="text" value="{{actor.name}}" placeholder="Ship Name" />
+      </h1>
+      <div class="core-stats">
+        <label>Power</label>
+        <input type="number" name="flags.tides-mana.power" value="{{ship.power}}" min="1" max="12" />
+
+        <label>Integrity</label>
+        <input type="number" name="flags.tides-mana.integrity" value="{{ship.integrity}}" min="1" max="12" />
+
+        <label>Maneuver</label>
+        <input type="number" name="flags.tides-mana.maneuver" value="{{ship.maneuver}}" min="1" max="12" />
+
+        <label>Temp Integrity Mod</label>
+        <input type="number" name="flags.tides-mana.integrityMod" value="{{ship.integrityMod}}" />
+      </div>
+    </div>
+  </header>
+
+  <section class="resources">
+    <div class="resource">
+      <label>HP</label>
+      <input type="number" name="flags.tides-mana.hp.value" value="{{ship.hp.value}}" min="0" />
+      <span class="resource-max">/ {{ship.hp.max}}</span>
+    </div>
+    <div class="resource">
+      <label>Mana</label>
+      <input type="number" name="flags.tides-mana.mana.value" value="{{ship.mana.value}}" min="0" />
+      <span class="resource-max">/ {{ship.mana.max}}</span>
+    </div>
+    <div class="resource">
+      <label>Passive Recharge</label>
+      <span class="resource-max">{{ship.passiveRecharge}}</span>
+    </div>
+    <div class="resource">
+      <label>Bonus Mana (next round)</label>
+      <input type="number" name="flags.tides-mana.bonusMana" value="{{ship.bonusMana}}" min="0" />
+    </div>
+  </section>
+
+  <section class="status-grid">
+    <div class="status-block">
+      <strong>Effective Integrity</strong>
+      <span>{{ship.effectiveIntegrity}}</span>
+      <strong>Boarding Ready</strong>
+      <span>{{#if ship.boardingReady}}Yes{{else}}No{{/if}}</span>
+    </div>
+    <div class="status-block">
+      <label><input type="checkbox" name="flags.tides-mana.grappled" {{checked ship.grappled}} /> Grappled</label>
+      <input type="text" name="flags.tides-mana.grappledBy" value="{{ship.grappledBy}}" placeholder="Grappled by (Actor ID)" />
+    </div>
+    <div class="status-block">
+      <label><input type="checkbox" name="flags.tides-mana.movementLocked" {{checked ship.movementLocked}} /> Movement Locked</label>
+      <small>Use after failed ramming or to lock movement.</small>
+    </div>
+    <div class="status-block">
+      <strong>Disabled Systems (next round)</strong>
+      <label><input type="checkbox" name="flags.tides-mana.disabledSystems.cannons" {{checked ship.disabledSystems.cannons}} /> Cannons</label>
+      <label><input type="checkbox" name="flags.tides-mana.disabledSystems.ramming" {{checked ship.disabledSystems.ramming}} /> Ramming</label>
+      <label><input type="checkbox" name="flags.tides-mana.disabledSystems.movement" {{checked ship.disabledSystems.movement}} /> Movement</label>
+      <label><input type="checkbox" name="flags.tides-mana.disabledSystems.engineer" {{checked ship.disabledSystems.engineer}} /> Engineer</label>
+    </div>
+  </section>
+
+  <section class="actions">
+    <button type="button" class="action" data-action="initiative">Roll Initiative</button>
+    <button type="button" class="action" data-action="engineer">Engineer Recharge</button>
+    <button type="button" class="action" data-action="begin-round">Apply Round Recharge</button>
+    <button type="button" class="action" data-action="shield">Integrity Shield (2 mana)</button>
+    <button type="button" class="action" data-action="ramming">Ramming (2 mana)</button>
+    <button type="button" class="clear-effects">Clear Temp Effects</button>
+  </section>
+
+  <section class="movement-controls">
+    <label>Movement (1 mana per square)</label>
+    <input class="movement-squares" type="number" min="0" placeholder="Squares" />
+    <button type="button" class="action" data-action="movement">Spend Movement Mana</button>
+  </section>
+
+  <section class="cannons">
+    <header class="section-header">
+      <h2>Cannons</h2>
+      <button type="button" class="cannon-add">Add Cannon</button>
+    </header>
+    <ol class="cannon-list">
+      {{#each ship.cannons as |cannon|}}
+        <li class="cannon" data-cannon-id="{{cannon.id}}">
+          <input type="text" name="flags.tides-mana.cannons.{{@index}}.name" value="{{cannon.name}}" placeholder="Cannon name" />
+
+          <select class="cannon-facing" name="flags.tides-mana.cannons.{{@index}}.facing">
+            {{#select cannon.facing}}
+              <option value="front">Front</option>
+              <option value="right">Right</option>
+              <option value="rear">Rear</option>
+              <option value="left">Left</option>
+            {{/select}}
+          </select>
+
+          <select class="cannon-target" name="flags.tides-mana.cannons.{{@index}}.targetDirection">
+            {{selectOptions cannon.allowedTargets selected=cannon.targetDirection}}
+          </select>
+
+          <input class="cannon-count" type="number" name="flags.tides-mana.cannons.{{@index}}.count" value="{{cannon.count}}" min="1" />
+
+          <input class="cannon-damage" type="text" name="flags.tides-mana.cannons.{{@index}}.damage" value="{{cannon.damage}}" placeholder="Damage formula" />
+
+          <button type="button" class="cannon-fire">Fire</button>
+          <button type="button" class="cannon-delete">Delete</button>
+        </li>
+      {{/each}}
+    </ol>
+  </section>
+</form>

@@ -1,0 +1,21 @@
+{
+  "id": "tides-mana",
+  "title": "Tides of Mana: Naval Combat",
+  "description": "System-agnostic ship combat tools for high-seas battles.",
+  "version": "0.1.0",
+  "authors": [
+    {
+      "name": "Tides Mana Mod"
+    }
+  ],
+  "compatibility": {
+    "minimum": "11",
+    "verified": "12"
+  },
+  "esmodules": [
+    "scripts/module.js"
+  ],
+  "styles": [
+    "styles/ship-sheet.css"
+  ]
+}

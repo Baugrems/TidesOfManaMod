@@ -1,0 +1,167 @@
+.tides-mana.ship-sheet {
+  font-family: "Georgia", "Palatino Linotype", serif;
+  color: #1f1b16;
+}
+
+.tides-mana .sheet-header {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 16px;
+  align-items: center;
+  border-bottom: 2px solid #6b5946;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+}
+
+.tides-mana .sheet-header .profile {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border: 2px solid #6b5946;
+  border-radius: 6px;
+}
+
+.tides-mana .core-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(120px, 1fr));
+  gap: 8px 12px;
+  align-items: center;
+}
+
+.tides-mana .core-stats label {
+  font-weight: 600;
+}
+
+.tides-mana .resources,
+.tides-mana .status-grid,
+.tides-mana .actions,
+.tides-mana .movement-controls,
+.tides-mana .cannons {
+  margin-bottom: 16px;
+}
+
+.tides-mana .resources {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  padding: 12px;
+  background: #f3efe9;
+  border: 1px solid #c7b8a5;
+  border-radius: 8px;
+}
+
+.tides-mana .resource {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px;
+  align-items: center;
+}
+
+.tides-mana .resource-max {
+  font-weight: 600;
+}
+
+.tides-mana .status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.tides-mana .status-block {
+  padding: 10px;
+  border: 1px solid #c7b8a5;
+  border-radius: 8px;
+  background: #fbf7f0;
+  display: grid;
+  gap: 6px;
+}
+
+.tides-mana .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tides-mana .actions button,
+.tides-mana .movement-controls button,
+.tides-mana .cannons button {
+  background: #6b5946;
+  color: #fdfbf7;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.tides-mana .actions button:hover,
+.tides-mana .movement-controls button:hover,
+.tides-mana .cannons button:hover {
+  background: #574636;
+}
+
+.tides-mana .movement-controls {
+  display: grid;
+  grid-template-columns: auto 120px auto;
+  gap: 8px;
+  align-items: center;
+  padding: 12px;
+  border: 1px dashed #c7b8a5;
+  border-radius: 8px;
+  background: #f9f5ee;
+}
+
+.tides-mana .cannons .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.tides-mana .cannon-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.tides-mana .cannon {
+  display: grid;
+  grid-template-columns: 1.4fr 110px 140px 80px 1fr auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px;
+  border: 1px solid #d7c8b3;
+  border-radius: 6px;
+  background: #fdfbf7;
+}
+
+.tides-mana input,
+.tides-mana select {
+  padding: 4px 6px;
+  border: 1px solid #b9a58f;
+  border-radius: 4px;
+  background: #fffdfa;
+}
+
+.tides-mana small {
+  color: #5e5143;
+}
+
+.tides-mana-chat {
+  font-family: "Georgia", "Palatino Linotype", serif;
+}
+
+@media (max-width: 720px) {
+  .tides-mana .core-stats {
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+  }
+
+  .tides-mana .cannon {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .tides-mana .movement-controls {
+    grid-template-columns: 1fr;
+  }
+}
