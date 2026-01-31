@@ -17,5 +17,7 @@
   ],
   "styles": [
     "styles/ship-sheet.css"
-  ]
+  ],
+  "manifest": "https://raw.githubusercontent.com/Baugrems/TidesOfManaMod/main/module.json",
+  "download": "https://github.com/Baugrems/TidesOfManaMod/releases/download/v0.1.0/tides-mana.zip"
 }
