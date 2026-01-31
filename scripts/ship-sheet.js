@@ -251,6 +251,13 @@ export class NavalShipSheet extends ActorSheet {
         `<div class=\"tides-mana-chat\"><strong>Ramming Failed</strong>: took ${selfDamage} damage, movement locked, Integrity -2 next round.</div>`,
         this.actor
       );
+      const selfAfter = getShipData(this.actor);
+      if (selfAfter.hp.value <= 0) {
+        await postChat(
+          `<div class=\"tides-mana-chat\"><strong>${this.actor.name}</strong> is disabled and sinking.</div>`,
+          this.actor
+        );
+      }
       if (selfDamageRoll) {
         await selfDamageRoll.toMessage({
           speaker: ChatMessage.getSpeaker({ actor: this.actor }),
@@ -268,6 +275,14 @@ export class NavalShipSheet extends ActorSheet {
 
     await applyDamage(targetActor, targetDamage);
     await applyDamage(this.actor, attackerDamage);
+
+    const selfAfter = getShipData(this.actor);
+    if (selfAfter.hp.value <= 0) {
+      await postChat(
+        `<div class=\"tides-mana-chat\"><strong>${this.actor.name}</strong> is disabled and sinking.</div>`,
+        this.actor
+      );
+    }
 
     if (critical) {
       targetShip.integrity = Math.max(1, targetShip.integrity - 1);
