@@ -6,7 +6,15 @@ Hooks.once("init", () => {
 
   const actorTypes = game.system?.documentTypes?.Actor ?? [];
   const fallbackTypes = Object.keys(CONFIG.Actor?.typeLabels ?? {});
-  const types = actorTypes.length ? actorTypes : fallbackTypes.length ? fallbackTypes : ["character"];
+  const isDnd5e = game.system?.id === "dnd5e";
+  const dnd5eTypes = ["character", "npc", "vehicle", "group"];
+  const types = isDnd5e
+    ? dnd5eTypes
+    : actorTypes.length
+      ? actorTypes
+      : fallbackTypes.length
+        ? fallbackTypes
+        : ["character"];
 
   Actors.registerSheet(MODULE_ID, NavalShipSheet, {
     types,
