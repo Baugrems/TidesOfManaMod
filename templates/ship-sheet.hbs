@@ -219,9 +219,9 @@
     <ol class="cannon-list">
       {{#each ship.cannons as |cannon|}}
         <li class="cannon" data-cannon-id="{{cannon.id}}">
-          <input type="text" name="flags.tides-mana.cannons.{{@index}}.name" value="{{cannon.name}}" placeholder="Cannon name" />
+          <input type="text" name="flags.tides-mana.cannons.{{@index}}.name" value="{{cannon.name}}" placeholder="Cannon name" title="Battery name" />
 
-          <select class="cannon-facing" name="flags.tides-mana.cannons.{{@index}}.facing">
+          <select class="cannon-facing" name="flags.tides-mana.cannons.{{@index}}.facing" title="Facing">
             {{#select cannon.facing}}
               <option value="front">Front</option>
               <option value="right">Right</option>
@@ -230,13 +230,13 @@
             {{/select}}
           </select>
 
-          <select class="cannon-target" name="flags.tides-mana.cannons.{{@index}}.targetDirection">
+          <select class="cannon-target" name="flags.tides-mana.cannons.{{@index}}.targetDirection" title="Default target direction">
             {{selectOptions cannon.allowedTargets selected=cannon.targetDirection}}
           </select>
 
-          <input class="cannon-count" type="number" name="flags.tides-mana.cannons.{{@index}}.count" value="{{cannon.count}}" min="1" />
+          <input class="cannon-count" type="number" name="flags.tides-mana.cannons.{{@index}}.count" value="{{cannon.count}}" min="1" title="Number of cannons in this battery" />
 
-          <input class="cannon-damage" type="text" name="flags.tides-mana.cannons.{{@index}}.damage" value="{{cannon.damage}}" placeholder="Damage formula" />
+          <input class="cannon-damage" type="text" name="flags.tides-mana.cannons.{{@index}}.damage" value="{{cannon.damage}}" placeholder="Damage formula" title="Damage formula (ex: 2d6+1)" />
 
           <button type="button" class="cannon-fire">Fire</button>
           <button type="button" class="cannon-delete">Delete</button>

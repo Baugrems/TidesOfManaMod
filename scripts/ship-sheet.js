@@ -695,7 +695,14 @@ export class NavalShipSheet extends ActorSheet {
   async _onPresetSave(event) {
     event.preventDefault();
     if (!(await this._ensureCanManageShip("Save Preset"))) return;
-    const ship = getShipData(this.actor);
+    const formData = this.form ? new FormData(this.form) : null;
+    const expanded = formData ? foundry.utils.expandObject(Object.fromEntries(formData)) : {};
+    const incoming = foundry.utils.getProperty(expanded, `flags.${MODULE_ID}`) ?? {};
+    const ship = foundry.utils.mergeObject(getShipData(this.actor), incoming, {
+      inplace: false,
+      overwrite: true
+    });
+    normalizeShipData(ship);
     const name = await Dialog.prompt({
       title: "Save Cannon Preset",
       content: "<p>Preset name:</p><input type=\"text\" name=\"presetName\" />",

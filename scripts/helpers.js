@@ -114,6 +114,11 @@ export function normalizeShipData(ship) {
   ship.grappled = Boolean(ship.grappled);
   ship.grappledBy = ship.grappledBy ?? "";
 
+  if (ship.cannons && !Array.isArray(ship.cannons) && typeof ship.cannons === "object") {
+    ship.cannons = Object.keys(ship.cannons)
+      .sort((a, b) => Number(a) - Number(b))
+      .map((key) => ship.cannons[key]);
+  }
   ship.cannons = Array.isArray(ship.cannons) ? ship.cannons : [];
   ship.cannons = ship.cannons.map((cannon) => {
     const facing = FACING_OPTIONS.includes(cannon.facing) ? cannon.facing : "front";
