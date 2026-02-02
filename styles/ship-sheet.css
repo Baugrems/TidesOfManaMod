@@ -1,6 +1,11 @@
 .tides-mana.ship-sheet {
   font-family: "Georgia", "Palatino Linotype", serif;
-  color: #1f1b16;
+  color: #e6d7b3;
+  background: radial-gradient(circle at top, #123238 0%, #0b1216 55%, #070a0d 100%);
+  border: 10px solid #3a2614;
+  border-radius: 14px;
+  box-shadow: inset 0 0 0 2px #7b5a2d, inset 0 0 18px rgba(20, 12, 6, 0.8);
+  padding: 10px;
 }
 
 .tides-mana .sheet-header {
@@ -8,16 +13,44 @@
   grid-template-columns: 96px 1fr;
   gap: 16px;
   align-items: center;
-  border-bottom: 2px solid #6b5946;
+  border-bottom: 2px solid #1f6b73;
   padding-bottom: 12px;
   margin-bottom: 12px;
+}
+
+.tides-mana .status-banner {
+  padding: 6px 10px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 12px;
+}
+
+.tides-mana .status-disabled {
+  background: #5b1111;
+  color: #f8d6d6;
+  border: 1px solid #9f2a2a;
+}
+
+.tides-mana .status-grappled {
+  background: #0e3a2f;
+  color: #d7f0e7;
+  border: 1px solid #1a6f57;
+}
+
+.tides-mana .status-locked {
+  background: #3b2d0d;
+  color: #f0deb2;
+  border: 1px solid #846327;
 }
 
 .tides-mana .sheet-header .profile {
   width: 96px;
   height: 96px;
   object-fit: cover;
-  border: 2px solid #6b5946;
+  border: 2px solid #8a6a36;
   border-radius: 6px;
 }
 
@@ -36,6 +69,7 @@
 .tides-mana .status-grid,
 .tides-mana .actions,
 .tides-mana .movement-controls,
+.tides-mana .stations,
 .tides-mana .cannons {
   margin-bottom: 16px;
 }
@@ -45,8 +79,8 @@
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 12px;
   padding: 12px;
-  background: #f3efe9;
-  border: 1px solid #c7b8a5;
+  background: rgba(10, 20, 24, 0.7);
+  border: 1px solid #1f6b73;
   border-radius: 8px;
 }
 
@@ -69,11 +103,19 @@
 
 .tides-mana .status-block {
   padding: 10px;
-  border: 1px solid #c7b8a5;
+  border: 1px solid #2a8892;
   border-radius: 8px;
-  background: #fbf7f0;
+  background: rgba(12, 28, 33, 0.85);
   display: grid;
   gap: 6px;
+}
+
+.tides-mana .log-list {
+  max-height: 120px;
+  overflow-y: auto;
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
 }
 
 .tides-mana .actions {
@@ -85,9 +127,9 @@
 .tides-mana .actions button,
 .tides-mana .movement-controls button,
 .tides-mana .cannons button {
-  background: #6b5946;
-  color: #fdfbf7;
-  border: none;
+  background: linear-gradient(135deg, #0f3f46, #1a6f77);
+  color: #f5d488;
+  border: 1px solid #0a2c31;
   padding: 6px 12px;
   border-radius: 6px;
   cursor: pointer;
@@ -96,7 +138,7 @@
 .tides-mana .actions button:hover,
 .tides-mana .movement-controls button:hover,
 .tides-mana .cannons button:hover {
-  background: #574636;
+  background: linear-gradient(135deg, #18555c, #238892);
 }
 
 .tides-mana .movement-controls {
@@ -105,9 +147,9 @@
   gap: 8px;
   align-items: center;
   padding: 12px;
-  border: 1px dashed #c7b8a5;
+  border: 1px dashed #2a8892;
   border-radius: 8px;
-  background: #f9f5ee;
+  background: rgba(10, 22, 26, 0.8);
 }
 
 .tides-mana .cannons .section-header {
@@ -115,6 +157,12 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
+}
+
+.tides-mana .cannon-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
 .tides-mana .cannon-list {
@@ -131,25 +179,55 @@
   gap: 8px;
   align-items: center;
   padding: 8px;
-  border: 1px solid #d7c8b3;
+  border: 1px solid #1f6b73;
   border-radius: 6px;
-  background: #fdfbf7;
+  background: rgba(9, 18, 21, 0.85);
 }
 
 .tides-mana input,
 .tides-mana select {
   padding: 4px 6px;
-  border: 1px solid #b9a58f;
+  border: 1px solid #2a8892;
   border-radius: 4px;
-  background: #fffdfa;
+  background: #0c1519;
+  color: #f0e4c2;
 }
 
 .tides-mana small {
-  color: #5e5143;
+  color: #b7a98c;
 }
 
 .tides-mana-chat {
   font-family: "Georgia", "Palatino Linotype", serif;
+}
+
+.tides-mana .stations .section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.tides-mana .stations-grid {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 8px 12px;
+  padding: 10px;
+  border: 1px solid #1f6b73;
+  border-radius: 8px;
+  background: rgba(10, 22, 26, 0.8);
+}
+
+.tides-mana .stations-grid label.manned {
+  color: #f5d488;
+  font-weight: 700;
+}
+
+.tides-mana .stations-grid label.unmanned {
+  color: #7a8a90;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 11px;
 }
 
 @media (max-width: 720px) {
@@ -162,6 +240,10 @@
   }
 
   .tides-mana .movement-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .tides-mana .stations-grid {
     grid-template-columns: 1fr;
   }
 }

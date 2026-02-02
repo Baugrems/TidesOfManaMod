@@ -5,6 +5,15 @@
       <h1 class="charname">
         <input name="name" type="text" value="{{actor.name}}" placeholder="Ship Name" />
       </h1>
+      {{#if statusBanner.disabled}}
+        <div class="status-banner status-disabled">Disabled: Ship is sinking</div>
+      {{/if}}
+      {{#if statusBanner.grappled}}
+        <div class="status-banner status-grappled">Grappled: Boarding possible</div>
+      {{/if}}
+      {{#if statusBanner.movementLocked}}
+        <div class="status-banner status-locked">Movement Locked</div>
+      {{/if}}
       <div class="core-stats">
         <label>Power</label>
         <input type="number" name="flags.tides-mana.power" value="{{ship.power}}" min="1" max="12" />
@@ -67,12 +76,72 @@
   </section>
 
   <section class="actions">
+    <button type="submit" class="action-save">Save Changes</button>
+    <button type="button" class="combat-join">Join Combat (Naval Init)</button>
     <button type="button" class="action" data-action="initiative">Roll Initiative</button>
     <button type="button" class="action" data-action="engineer">Engineer Recharge</button>
     <button type="button" class="action" data-action="begin-round">Apply Round Recharge</button>
+    <button type="button" class="action" data-action="round-start">Start New Round</button>
     <button type="button" class="action" data-action="shield">Integrity Shield (2 mana)</button>
     <button type="button" class="action" data-action="ramming">Ramming (2 mana)</button>
     <button type="button" class="clear-effects">Clear Temp Effects</button>
+  </section>
+
+  <section class="status-grid">
+    <div class="status-block">
+      <strong>Targeting</strong>
+      {{#if target}}
+        <div>{{target.name}}</div>
+        <div>HP: {{target.hp}} / {{target.hpMax}}</div>
+        <div>Integrity: {{target.integrity}}</div>
+      {{else}}
+        <div>No target selected.</div>
+      {{/if}}
+    </div>
+    <div class="status-block">
+      <strong>Action Log</strong>
+      {{#if ship.log.length}}
+        <div class="log-list">
+          {{#each ship.log as |entry|}}
+            <div>{{entry}}</div>
+          {{/each}}
+        </div>
+      {{else}}
+        <div>No actions yet.</div>
+      {{/if}}
+    </div>
+  </section>
+
+  <section class="stations">
+    <header class="section-header">
+      <h2>Stations</h2>
+    </header>
+    <div class="stations-grid">
+      <label class="{{#if stationManned.captain}}manned{{else}}unmanned{{/if}}">Captain</label>
+      <select name="flags.tides-mana.stations.captain">
+        {{selectOptions pcOptions selected=ship.stations.captain}}
+      </select>
+
+      <label class="{{#if stationManned.helm}}manned{{else}}unmanned{{/if}}">Helm</label>
+      <select name="flags.tides-mana.stations.helm">
+        {{selectOptions pcOptions selected=ship.stations.helm}}
+      </select>
+
+      <label class="{{#if stationManned.gunnery}}manned{{else}}unmanned{{/if}}">Gunnery</label>
+      <select name="flags.tides-mana.stations.gunnery">
+        {{selectOptions pcOptions selected=ship.stations.gunnery}}
+      </select>
+
+      <label class="{{#if stationManned.engineer}}manned{{else}}unmanned{{/if}}">Engineer</label>
+      <select name="flags.tides-mana.stations.engineer">
+        {{selectOptions pcOptions selected=ship.stations.engineer}}
+      </select>
+
+      <label class="{{#if stationManned.boarding}}manned{{else}}unmanned{{/if}}">Boarding</label>
+      <select name="flags.tides-mana.stations.boarding">
+        {{selectOptions pcOptions selected=ship.stations.boarding}}
+      </select>
+    </div>
   </section>
 
   <section class="movement-controls">
@@ -84,7 +153,11 @@
   <section class="cannons">
     <header class="section-header">
       <h2>Cannons</h2>
-      <button type="button" class="cannon-add">Add Cannon</button>
+      <div class="cannon-actions">
+        <button type="button" class="preset-save">Save Preset</button>
+        <button type="button" class="preset-load">Load Preset</button>
+        <button type="button" class="cannon-add">Add Cannon</button>
+      </div>
     </header>
     <ol class="cannon-list">
       {{#each ship.cannons as |cannon|}}

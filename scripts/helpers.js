@@ -45,6 +45,14 @@ export function createDefaultShip() {
       movement: false,
       engineer: false
     },
+    stations: {
+      captain: "",
+      helm: "",
+      gunnery: "",
+      engineer: "",
+      boarding: ""
+    },
+    log: [],
     movementLocked: false,
     grappled: false,
     grappledBy: "",
@@ -88,6 +96,15 @@ export function normalizeShipData(ship) {
   ship.disabledSystems.ramming = Boolean(ship.disabledSystems.ramming);
   ship.disabledSystems.movement = Boolean(ship.disabledSystems.movement);
   ship.disabledSystems.engineer = Boolean(ship.disabledSystems.engineer);
+
+  ship.stations = ship.stations ?? {};
+  ship.stations.captain = ship.stations.captain ?? "";
+  ship.stations.helm = ship.stations.helm ?? "";
+  ship.stations.gunnery = ship.stations.gunnery ?? "";
+  ship.stations.engineer = ship.stations.engineer ?? "";
+  ship.stations.boarding = ship.stations.boarding ?? "";
+
+  ship.log = Array.isArray(ship.log) ? ship.log : [];
 
   ship.movementLocked = Boolean(ship.movementLocked);
   ship.grappled = Boolean(ship.grappled);
@@ -158,6 +175,15 @@ export function withAllowedTargets(cannon) {
 
 export function directionLabel(direction) {
   return DIRECTION_LABELS[direction] ?? direction;
+}
+
+export async function addLog(actor, message) {
+  const ship = getShipData(actor);
+  const entry = `${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} — ${message}`;
+  ship.log = Array.isArray(ship.log) ? ship.log : [];
+  ship.log.unshift(entry);
+  ship.log = ship.log.slice(0, 6);
+  await updateShip(actor, ship);
 }
 
 export async function updateShip(actor, ship) {

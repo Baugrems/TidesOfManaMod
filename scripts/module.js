@@ -4,6 +4,14 @@ import { MODULE_ID } from "./helpers.js";
 Hooks.once("init", () => {
   console.log(`${MODULE_ID} | Initializing Tides of Mana: Naval Combat`);
 
+  game.settings.register(MODULE_ID, "cannonPresets", {
+    name: "Cannon Presets",
+    scope: "world",
+    config: false,
+    type: Object,
+    default: []
+  });
+
   const actorTypes = game.system?.documentTypes?.Actor ?? [];
   const fallbackTypes = Object.keys(CONFIG.Actor?.typeLabels ?? {});
   const isDnd5e = game.system?.id === "dnd5e";

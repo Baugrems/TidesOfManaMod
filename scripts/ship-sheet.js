@@ -9,6 +9,7 @@ import {
   spendMana,
   applyDamage,
   patchShip,
+  addLog,
   postChat,
   rollD12Plus,
   rollFormula,
@@ -21,7 +22,7 @@ export class NavalShipSheet extends ActorSheet {
       classes: ["tides-mana", "sheet", "actor"],
       width: 720,
       height: 820,
-      submitOnChange: true,
+      submitOnChange: false,
       submitOnClose: true
     });
   }
@@ -36,6 +37,59 @@ export class NavalShipSheet extends ActorSheet {
     ship.cannons = ship.cannons.map((cannon) => withAllowedTargets(cannon));
     ship.effectiveIntegrity = getEffectiveIntegrity(ship);
     ship.boardingReady = ship.hp.value <= 0 || ship.grappled;
+    ship.log = Array.isArray(ship.log) ? ship.log : [];
+
+    const targetToken = game.user.targets?.first
+      ? game.user.targets.first()
+      : Array.from(game.user.targets ?? [])[0];
+    const targetActor = targetToken?.actor ?? null;
+    const targetShip = targetActor ? getShipData(targetActor) : null;
+    data.target = targetActor
+      ? {
+          name: targetActor.name,
+          hp: targetShip?.hp?.value ?? 0,
+          hpMax: targetShip?.hp?.max ?? 0,
+          integrity: targetShip ? getEffectiveIntegrity(targetShip) : 0
+        }
+      : null;
+
+    const stationEntries = Object.entries(ship.stations ?? {});
+    const stationActors = await Promise.all(
+      stationEntries.map(async ([key, uuid]) => {
+        if (!uuid) return [key, null];
+        const doc = await fromUuid(uuid);
+        return [key, doc];
+      })
+    );
+    const stationNames = {};
+    const stationPermissions = {};
+    const stationManned = {};
+    stationActors.forEach(([key, doc]) => {
+      stationNames[key] = doc?.name ?? "";
+      stationManned[key] = Boolean(doc);
+      stationPermissions[key] = doc
+        ? game.user.isGM ||
+          doc.testUserPermission(game.user, CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER)
+        : false;
+    });
+    data.stationNames = stationNames;
+    data.stationPermissions = stationPermissions;
+    data.stationManned = stationManned;
+    data.statusBanner = {
+      disabled: ship.hp.value <= 0,
+      grappled: ship.grappled,
+      movementLocked: ship.movementLocked
+    };
+
+    const pcOptions = [{ value: "", label: "-- Unassigned --" }];
+    const actors = Array.from(game.actors ?? []);
+    actors
+      .filter((actor) => actor.type === "character")
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .forEach((actor) => {
+        pcOptions.push({ value: actor.uuid, label: actor.name });
+      });
+    data.pcOptions = pcOptions;
     data.ship = ship;
     data.systemName = game.system.title;
     return data;
@@ -45,6 +99,9 @@ export class NavalShipSheet extends ActorSheet {
     super.activateListeners(html);
 
     html.on("click", ".action", this._onAction.bind(this));
+    html.on("click", ".combat-join", this._onCombatJoin.bind(this));
+    html.on("click", ".preset-save", this._onPresetSave.bind(this));
+    html.on("click", ".preset-load", this._onPresetLoad.bind(this));
     html.on("click", ".cannon-add", this._onCannonAdd.bind(this));
     html.on("click", ".cannon-delete", this._onCannonDelete.bind(this));
     html.on("click", ".cannon-fire", this._onCannonFire.bind(this));
@@ -78,6 +135,8 @@ export class NavalShipSheet extends ActorSheet {
         return this._rollEngineer();
       case "begin-round":
         return this._beginRound();
+      case "round-start":
+        return this._startRound();
       case "shield":
         return this._activateShield();
       case "movement":
@@ -89,7 +148,76 @@ export class NavalShipSheet extends ActorSheet {
     }
   }
 
+  async _requireStation(stationKey, actionLabel) {
+    if (game.user.isGM) return true;
+    const ship = getShipData(this.actor);
+    const uuid = ship.stations?.[stationKey];
+    if (!uuid) {
+      ui.notifications.warn(`${actionLabel} requires a crewed ${stationKey} station.`);
+      return false;
+    }
+    const doc = await fromUuid(uuid);
+    const hasControl = doc?.testUserPermission(
+      game.user,
+      CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER
+    );
+    if (!hasControl) {
+      ui.notifications.warn(`Only the assigned ${stationKey} can use ${actionLabel}.`);
+      return false;
+    }
+    return true;
+  }
+
+  async _ensureCanManageShip(actionLabel) {
+    if (game.user.isGM || this.actor.isOwner) return true;
+    ui.notifications.warn(`${actionLabel} requires ship ownership or GM permissions.`);
+    return false;
+  }
+
+  async _getActiveToken() {
+    const tokens = this.actor.getActiveTokens(true);
+    return tokens?.[0] ?? null;
+  }
+
+  async _ensureCombat() {
+    if (game.combat) return game.combat;
+    return Combat.create({ scene: canvas.scene?.id });
+  }
+
+  async _ensureCombatant() {
+    const token = await this._getActiveToken();
+    if (!token) {
+      ui.notifications.warn("Place this ship's token on the scene to join combat.");
+      return null;
+    }
+    const combat = await this._ensureCombat();
+    const existing = combat.combatants?.find((c) => c.tokenId === token.id);
+    if (existing) return existing;
+    return combat.createEmbeddedDocuments("Combatant", [{ tokenId: token.id, actorId: this.actor.id }]);
+  }
+
+  async _onCombatJoin(event) {
+    event.preventDefault();
+    const ship = getShipData(this.actor);
+    const { roll } = await rollD12Plus(ship.maneuver);
+    const token = await this._getActiveToken();
+    if (!token) return;
+    const combat = await this._ensureCombat();
+    const combatant = combat.combatants?.find((c) => c.tokenId === token.id);
+    if (!combatant) {
+      await combat.createEmbeddedDocuments("Combatant", [{ tokenId: token.id, actorId: this.actor.id, initiative: roll.total }]);
+    } else {
+      await combatant.update({ initiative: roll.total });
+    }
+    await roll.toMessage({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      flavor: `Naval Initiative (Maneuverability ${ship.maneuver >= 0 ? "+" : ""}${ship.maneuver})`
+    });
+    ui.notifications.info("Ship joined combat with naval initiative.");
+  }
+
   async _rollInitiative() {
+    if (!(await this._requireStation("captain", "Initiative"))) return;
     const ship = getShipData(this.actor);
     const { roll, natural } = await rollD12Plus(ship.maneuver);
     await roll.toMessage({
@@ -98,15 +226,22 @@ export class NavalShipSheet extends ActorSheet {
         ship.maneuver
       })`
     });
+    const token = await this._getActiveToken();
+    if (token && game.combat) {
+      const combatant = game.combat.combatants?.find((c) => c.tokenId === token.id);
+      if (combatant) await combatant.update({ initiative: roll.total });
+    }
     if (natural === 1 || natural === 12) {
       await postChat(
         `<div class="tides-mana-chat"><strong>Natural ${natural}</strong> on initiative roll.</div>`,
         this.actor
       );
     }
+    await addLog(this.actor, `Initiative rolled (${roll.total}).`);
   }
 
   async _rollEngineer() {
+    if (!(await this._requireStation("engineer", "Engineer Recharge"))) return;
     const ship = getShipData(this.actor);
     if (ship.disabledSystems.engineer) {
       ui.notifications.warn("Engineer system is unavailable next round.");
@@ -135,9 +270,11 @@ export class NavalShipSheet extends ActorSheet {
       : "No bonus mana next round.";
 
     await postChat(`<div class="tides-mana-chat">${message}</div>`, this.actor);
+    await addLog(this.actor, `Engineer recharge set to +${bonus} next round.`);
   }
 
   async _beginRound() {
+    if (!(await this._requireStation("captain", "Round Recharge"))) return;
     const ship = getShipData(this.actor);
     const gained = ship.passiveRecharge + ship.bonusMana;
     ship.mana.value = Math.min(ship.mana.value + gained, ship.mana.max);
@@ -150,9 +287,33 @@ export class NavalShipSheet extends ActorSheet {
       `<div class="tides-mana-chat"><strong>Round Refresh</strong>: +${gained} mana (passive ${ship.passiveRecharge}).</div>`,
       this.actor
     );
+    await addLog(this.actor, `Round refresh +${gained} mana.`);
+  }
+
+  async _startRound() {
+    if (!(await this._requireStation("captain", "Start Round"))) return;
+    const ship = getShipData(this.actor);
+    ship.integrityMod = 0;
+    ship.disabledSystems = {
+      cannons: false,
+      ramming: false,
+      movement: false,
+      engineer: false
+    };
+    ship.movementLocked = false;
+    const gained = ship.passiveRecharge + ship.bonusMana;
+    ship.mana.value = Math.min(ship.mana.value + gained, ship.mana.max);
+    ship.bonusMana = 0;
+    await updateShip(this.actor, ship);
+    await postChat(
+      `<div class="tides-mana-chat"><strong>New Round</strong>: temp effects cleared, +${gained} mana.</div>`,
+      this.actor
+    );
+    await addLog(this.actor, `New round: cleared temp effects, +${gained} mana.`);
   }
 
   async _activateShield() {
+    if (!(await this._requireStation("captain", "Integrity Shield"))) return;
     const ship = getShipData(this.actor);
     if (ship.mana.value < 2) {
       ui.notifications.warn("Not enough mana to raise the Integrity Shield.");
@@ -163,9 +324,11 @@ export class NavalShipSheet extends ActorSheet {
       "<div class=\"tides-mana-chat\"><strong>Integrity Shield</strong> engaged: block a confirmed incoming hit.</div>",
       this.actor
     );
+    await addLog(this.actor, "Integrity Shield engaged (-2 mana).");
   }
 
   async _spendMovement(button) {
+    if (!(await this._requireStation("helm", "Movement"))) return;
     const ship = getShipData(this.actor);
     if (ship.disabledSystems.movement) {
       ui.notifications.warn("Movement system is unavailable next round.");
@@ -194,9 +357,11 @@ export class NavalShipSheet extends ActorSheet {
       `<div class=\"tides-mana-chat\"><strong>Movement</strong>: spent ${squares} mana for ${squares} squares.</div>`,
       this.actor
     );
+    await addLog(this.actor, `Movement ${squares} squares (-${squares} mana).`);
   }
 
   async _rammingAttack() {
+    if (!(await this._requireStation("captain", "Ramming"))) return;
     const ship = getShipData(this.actor);
     if (ship.disabledSystems.ramming) {
       ui.notifications.warn("Ramming system is unavailable next round.");
@@ -239,6 +404,7 @@ export class NavalShipSheet extends ActorSheet {
         "<div class=\"tides-mana-chat\"><strong>Critical Failure</strong>: Ramming system unavailable next round.</div>",
         this.actor
       );
+      await addLog(this.actor, "Ramming critical failure.");
     }
 
     if (!hit) {
@@ -264,6 +430,7 @@ export class NavalShipSheet extends ActorSheet {
           flavor: "Ramming Backlash"
         });
       }
+      await addLog(this.actor, `Ramming failed (${selfDamage} self-damage).`);
       return;
     }
 
@@ -320,10 +487,12 @@ export class NavalShipSheet extends ActorSheet {
         this.actor
       );
     }
+    await addLog(this.actor, `Ramming hit (${targetDamage} to target, ${attackerDamage} to self).`);
   }
 
   async _onCannonAdd(event) {
     event.preventDefault();
+    if (!(await this._ensureCanManageShip("Add Cannon"))) return;
     const ship = getShipData(this.actor);
     ship.cannons.push({
       id: foundry.utils.randomID(),
@@ -338,6 +507,7 @@ export class NavalShipSheet extends ActorSheet {
 
   async _onCannonDelete(event) {
     event.preventDefault();
+    if (!(await this._ensureCanManageShip("Delete Cannon"))) return;
     const li = event.currentTarget.closest(".cannon");
     const cannonId = li?.dataset?.cannonId;
     if (!cannonId) return;
@@ -348,6 +518,7 @@ export class NavalShipSheet extends ActorSheet {
 
   async _onCannonFire(event) {
     event.preventDefault();
+    if (!(await this._requireStation("gunnery", "Cannon Fire"))) return;
     const li = event.currentTarget.closest(".cannon");
     const cannonId = li?.dataset?.cannonId;
     if (!cannonId) return;
@@ -413,6 +584,7 @@ export class NavalShipSheet extends ActorSheet {
         "<div class=\"tides-mana-chat\"><strong>Critical Failure</strong>: Cannons unavailable next round.</div>",
         this.actor
       );
+      await addLog(this.actor, "Cannon critical failure.");
     }
 
     if (!targetActor) {
@@ -428,6 +600,7 @@ export class NavalShipSheet extends ActorSheet {
         `<div class=\"tides-mana-chat\"><strong>Miss</strong>: ${targetActor.name} holds (defense ${defense}).</div>`,
         this.actor
       );
+      await addLog(this.actor, "Cannon attack missed.");
       return;
     }
 
@@ -466,10 +639,12 @@ export class NavalShipSheet extends ActorSheet {
         );
       }
     }
+    await addLog(this.actor, `Cannon hit for ${damage} damage.`);
   }
 
   async _onClearEffects(event) {
     event.preventDefault();
+    if (!(await this._requireStation("captain", "Clear Temp Effects"))) return;
     const ship = getShipData(this.actor);
     ship.integrityMod = 0;
     ship.disabledSystems = {
@@ -484,5 +659,51 @@ export class NavalShipSheet extends ActorSheet {
       "<div class=\"tides-mana-chat\"><strong>Temporary effects cleared.</strong></div>",
       this.actor
     );
+    await addLog(this.actor, "Temporary effects cleared.");
+  }
+
+  async _onPresetSave(event) {
+    event.preventDefault();
+    if (!(await this._ensureCanManageShip("Save Preset"))) return;
+    const ship = getShipData(this.actor);
+    const name = await Dialog.prompt({
+      title: "Save Cannon Preset",
+      content: "<p>Preset name:</p><input type=\"text\" name=\"presetName\" />",
+      label: "Save",
+      callback: (html) => html.find("input[name='presetName']").val()?.trim()
+    });
+    if (!name) return;
+    const presets = (game.settings.get(MODULE_ID, "cannonPresets") ?? []).filter(
+      (preset) => preset.name !== name
+    );
+    presets.push({ name, cannons: ship.cannons });
+    await game.settings.set(MODULE_ID, "cannonPresets", presets);
+    ui.notifications.info(`Saved cannon preset: ${name}`);
+  }
+
+  async _onPresetLoad(event) {
+    event.preventDefault();
+    if (!(await this._ensureCanManageShip("Load Preset"))) return;
+    const presets = game.settings.get(MODULE_ID, "cannonPresets") ?? [];
+    if (!presets.length) {
+      ui.notifications.warn("No cannon presets saved yet.");
+      return;
+    }
+    const options = presets
+      .map((preset) => `<option value="${preset.name}">${preset.name}</option>`)
+      .join("");
+    const selected = await Dialog.prompt({
+      title: "Load Cannon Preset",
+      content: `<p>Select a preset:</p><select name="preset">${options}</select>`,
+      label: "Load",
+      callback: (html) => html.find("select[name='preset']").val()
+    });
+    if (!selected) return;
+    const preset = presets.find((entry) => entry.name === selected);
+    if (!preset) return;
+    const ship = getShipData(this.actor);
+    ship.cannons = preset.cannons;
+    await updateShip(this.actor, ship);
+    ui.notifications.info(`Loaded cannon preset: ${preset.name}`);
   }
 }
