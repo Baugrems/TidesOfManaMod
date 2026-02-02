@@ -61,6 +61,17 @@
   align-items: center;
 }
 
+.tides-mana .stat-chip {
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: rgba(9, 18, 21, 0.7);
+  border: 1px solid #1f6b73;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .tides-mana .core-stats label {
   font-weight: 600;
 }
@@ -72,6 +83,49 @@
 .tides-mana .stations,
 .tides-mana .cannons {
   margin-bottom: 16px;
+}
+
+.tides-mana .mode-toggle {
+  display: flex;
+  justify-content: flex-end;
+  margin: 6px 0 10px;
+  gap: 8px;
+}
+
+.tides-mana .sheet-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.tides-mana .sheet-tab {
+  background: rgba(9, 18, 21, 0.9);
+  color: #b7a98c;
+  border: 1px solid #1f6b73;
+  padding: 6px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.tides-mana .sheet-tab.active {
+  background: linear-gradient(135deg, #1a6f77, #0f3f46);
+  color: #f5d488;
+  border-color: #0a2c31;
+}
+
+.tides-mana .mode-toggle button {
+  background: linear-gradient(135deg, #0f3f46, #1a6f77);
+  color: #f5d488;
+  border: 1px solid #0a2c31;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.tides-mana .mode-toggle button:hover {
+  background: linear-gradient(135deg, #18555c, #238892);
 }
 
 .tides-mana .resources {
@@ -184,11 +238,29 @@
   background: rgba(9, 18, 21, 0.85);
 }
 
+.tides-mana .cannon-combat {
+  grid-template-columns: 1fr 120px 160px 90px auto;
+}
+
+.tides-mana .cannon-meta {
+  font-size: 12px;
+  color: #b7a98c;
+}
+
+.tides-mana .cannon-name {
+  font-weight: 700;
+}
+
 .tides-mana input,
 .tides-mana select {
   padding: 4px 6px;
   border: 1px solid #2a8892;
   border-radius: 4px;
+  background: #0c1519;
+  color: #f0e4c2;
+}
+
+.tides-mana select option {
   background: #0c1519;
   color: #f0e4c2;
 }
@@ -218,6 +290,27 @@
   background: rgba(10, 22, 26, 0.8);
 }
 
+.tides-mana .stations-readout {
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid #1f6b73;
+  border-radius: 8px;
+  background: rgba(10, 22, 26, 0.8);
+}
+
+.tides-mana .station-row.manned {
+  color: #f5d488;
+  font-weight: 700;
+}
+
+.tides-mana .station-row.unmanned {
+  color: #7a8a90;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 11px;
+}
+
 .tides-mana .stations-grid label.manned {
   color: #f5d488;
   font-weight: 700;
@@ -244,6 +337,10 @@
   }
 
   .tides-mana .stations-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tides-mana .cannon-combat {
     grid-template-columns: 1fr;
   }
 }

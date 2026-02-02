@@ -52,6 +52,8 @@ export function createDefaultShip() {
       engineer: "",
       boarding: ""
     },
+    editMode: true,
+    uiTab: "status",
     log: [],
     movementLocked: false,
     grappled: false,
@@ -104,6 +106,8 @@ export function normalizeShipData(ship) {
   ship.stations.engineer = ship.stations.engineer ?? "";
   ship.stations.boarding = ship.stations.boarding ?? "";
 
+  ship.editMode = ship.editMode !== false;
+  ship.uiTab = ship.uiTab || "status";
   ship.log = Array.isArray(ship.log) ? ship.log : [];
 
   ship.movementLocked = Boolean(ship.movementLocked);

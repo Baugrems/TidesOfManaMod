@@ -4,6 +4,7 @@ import {
   normalizeShipData,
   updateShip,
   withAllowedTargets,
+  getAllowedTargets,
   getTargetPenalty,
   getEffectiveIntegrity,
   spendMana,
@@ -80,6 +81,12 @@ export class NavalShipSheet extends ActorSheet {
       grappled: ship.grappled,
       movementLocked: ship.movementLocked
     };
+    data.tabs = {
+      status: ship.uiTab === "status",
+      cannons: ship.uiTab === "cannons",
+      stations: ship.uiTab === "stations",
+      combat: ship.uiTab === "combat"
+    };
 
     const pcOptions = [{ value: "", label: "-- Unassigned --" }];
     const actors = Array.from(game.actors ?? []);
@@ -100,12 +107,16 @@ export class NavalShipSheet extends ActorSheet {
 
     html.on("click", ".action", this._onAction.bind(this));
     html.on("click", ".combat-join", this._onCombatJoin.bind(this));
+    html.on("click", ".toggle-mode", this._onToggleMode.bind(this));
+    html.on("click", ".sheet-tab", this._onTabChange.bind(this));
     html.on("click", ".preset-save", this._onPresetSave.bind(this));
     html.on("click", ".preset-load", this._onPresetLoad.bind(this));
     html.on("click", ".cannon-add", this._onCannonAdd.bind(this));
     html.on("click", ".cannon-delete", this._onCannonDelete.bind(this));
     html.on("click", ".cannon-fire", this._onCannonFire.bind(this));
     html.on("click", ".clear-effects", this._onClearEffects.bind(this));
+    html.on("change", ".cannon-facing", this._onCannonFacingChange.bind(this));
+    html.on("change", ".cannon-target", this._onCannonTargetChange.bind(this));
   }
 
   async _updateObject(event, formData) {
@@ -177,6 +188,21 @@ export class NavalShipSheet extends ActorSheet {
   async _getActiveToken() {
     const tokens = this.actor.getActiveTokens(true);
     return tokens?.[0] ?? null;
+  }
+
+  async _onToggleMode(event) {
+    event.preventDefault();
+    const ship = getShipData(this.actor);
+    await patchShip(this.actor, { editMode: !ship.editMode });
+    this.render(false);
+  }
+
+  async _onTabChange(event) {
+    event.preventDefault();
+    const tab = event.currentTarget?.dataset?.tab;
+    if (!tab) return;
+    await patchShip(this.actor, { uiTab: tab });
+    this.render(false);
   }
 
   async _ensureCombat() {
@@ -532,15 +558,19 @@ export class NavalShipSheet extends ActorSheet {
     const cannon = ship.cannons.find((entry) => entry.id === cannonId);
     if (!cannon) return;
 
+    const targetSelect = li.querySelector("select.cannon-target");
+    const facingSelect = li.querySelector("select.cannon-facing");
     const countInput = li.querySelector("input.cannon-count");
     const damageInput = li.querySelector("input.cannon-damage");
-    const facingSelect = li.querySelector("select.cannon-facing");
-    const targetSelect = li.querySelector("select.cannon-target");
 
-    const count = Number(countInput?.value ?? cannon.count ?? 1);
-    const damageFormula = damageInput?.value ?? cannon.damage ?? "";
-    const facing = facingSelect?.value ?? cannon.facing ?? "front";
+    const facing = ship.editMode
+      ? facingSelect?.value ?? cannon.facing ?? "front"
+      : cannon.facing ?? "front";
     const targetDirection = targetSelect?.value ?? cannon.targetDirection ?? facing;
+    const count = ship.editMode
+      ? Number(countInput?.value ?? cannon.count ?? 1)
+      : Number(cannon.count ?? 1);
+    const damageFormula = ship.editMode ? damageInput?.value ?? cannon.damage ?? "" : cannon.damage ?? "";
 
     const penalty = getTargetPenalty(facing, targetDirection);
     if (penalty === null) {
@@ -705,5 +735,45 @@ export class NavalShipSheet extends ActorSheet {
     ship.cannons = preset.cannons;
     await updateShip(this.actor, ship);
     ui.notifications.info(`Loaded cannon preset: ${preset.name}`);
+  }
+
+  async _onCannonFacingChange(event) {
+    const select = event.currentTarget;
+    const li = select.closest(".cannon");
+    const cannonId = li?.dataset?.cannonId;
+    if (!cannonId) return;
+    const facing = select.value;
+    const targetSelect = li.querySelector("select.cannon-target");
+    if (targetSelect) {
+      const allowed = getAllowedTargets(facing);
+      const options = allowed
+        .map((direction) => {
+          const label = `${directionLabel(direction)}${direction === facing ? "" : " (-1)"}`;
+          return `<option value="${direction}">${label}</option>`;
+        })
+        .join("");
+      targetSelect.innerHTML = options;
+      targetSelect.value = allowed.includes(targetSelect.value) ? targetSelect.value : facing;
+    }
+
+    const ship = getShipData(this.actor);
+    const cannon = ship.cannons.find((entry) => entry.id === cannonId);
+    if (cannon) {
+      cannon.facing = facing;
+      if (!getAllowedTargets(facing).includes(cannon.targetDirection)) cannon.targetDirection = facing;
+      await updateShip(this.actor, ship);
+    }
+  }
+
+  async _onCannonTargetChange(event) {
+    const select = event.currentTarget;
+    const li = select.closest(".cannon");
+    const cannonId = li?.dataset?.cannonId;
+    if (!cannonId) return;
+    const ship = getShipData(this.actor);
+    const cannon = ship.cannons.find((entry) => entry.id === cannonId);
+    if (!cannon) return;
+    cannon.targetDirection = select.value;
+    await updateShip(this.actor, ship);
   }
 }

@@ -1,9 +1,13 @@
-<form class="tides-mana ship-sheet" autocomplete="off">
+<form class="tides-mana ship-sheet {{#if ship.editMode}}mode-edit{{else}}mode-combat{{/if}}" autocomplete="off">
   <header class="sheet-header">
     <img class="profile" src="{{actor.img}}" data-edit="img" title="{{actor.name}}" />
     <div class="header-fields">
       <h1 class="charname">
-        <input name="name" type="text" value="{{actor.name}}" placeholder="Ship Name" />
+        {{#if ship.editMode}}
+          <input name="name" type="text" value="{{actor.name}}" placeholder="Ship Name" />
+        {{else}}
+          <span class="ship-name">{{actor.name}}</span>
+        {{/if}}
       </h1>
       {{#if statusBanner.disabled}}
         <div class="status-banner status-disabled">Disabled: Ship is sinking</div>
@@ -15,20 +19,43 @@
         <div class="status-banner status-locked">Movement Locked</div>
       {{/if}}
       <div class="core-stats">
-        <label>Power</label>
-        <input type="number" name="flags.tides-mana.power" value="{{ship.power}}" min="1" max="12" />
+        {{#if ship.editMode}}
+          <label>Power</label>
+          <input type="number" name="flags.tides-mana.power" value="{{ship.power}}" min="1" max="12" />
 
-        <label>Integrity</label>
-        <input type="number" name="flags.tides-mana.integrity" value="{{ship.integrity}}" min="1" max="12" />
+          <label>Integrity</label>
+          <input type="number" name="flags.tides-mana.integrity" value="{{ship.integrity}}" min="1" max="12" />
 
-        <label>Maneuver</label>
-        <input type="number" name="flags.tides-mana.maneuver" value="{{ship.maneuver}}" min="1" max="12" />
+          <label>Maneuver</label>
+          <input type="number" name="flags.tides-mana.maneuver" value="{{ship.maneuver}}" min="1" max="12" />
 
-        <label>Temp Integrity Mod</label>
-        <input type="number" name="flags.tides-mana.integrityMod" value="{{ship.integrityMod}}" />
+          <label>Temp Integrity Mod</label>
+          <input type="number" name="flags.tides-mana.integrityMod" value="{{ship.integrityMod}}" />
+        {{else}}
+          <div class="stat-chip">Power <strong>{{ship.power}}</strong></div>
+          <div class="stat-chip">Integrity <strong>{{ship.integrity}}</strong></div>
+          <div class="stat-chip">Maneuver <strong>{{ship.maneuver}}</strong></div>
+          <div class="stat-chip">Temp Mod <strong>{{ship.integrityMod}}</strong></div>
+        {{/if}}
       </div>
     </div>
   </header>
+
+  <section class="mode-toggle">
+    <button type="submit" class="action-save">Save Changes</button>
+    <button type="button" class="toggle-mode">
+      {{#if ship.editMode}}Switch to Combat Mode{{else}}Switch to Edit Mode{{/if}}
+    </button>
+  </section>
+
+  <nav class="sheet-tabs">
+    <button type="button" class="sheet-tab {{#if tabs.status}}active{{/if}}" data-tab="status">Status</button>
+    <button type="button" class="sheet-tab {{#if tabs.cannons}}active{{/if}}" data-tab="cannons">Cannons</button>
+    <button type="button" class="sheet-tab {{#if tabs.stations}}active{{/if}}" data-tab="stations">Stations</button>
+    {{#unless ship.editMode}}
+      <button type="button" class="sheet-tab {{#if tabs.combat}}active{{/if}}" data-tab="combat">Combat</button>
+    {{/unless}}
+  </nav>
 
   <section class="resources">
     <div class="resource">
@@ -51,6 +78,7 @@
     </div>
   </section>
 
+  {{#if tabs.status}}
   <section class="status-grid">
     <div class="status-block">
       <strong>Effective Integrity</strong>
@@ -59,24 +87,29 @@
       <span>{{#if ship.boardingReady}}Yes{{else}}No{{/if}}</span>
     </div>
     <div class="status-block">
-      <label><input type="checkbox" name="flags.tides-mana.grappled" {{checked ship.grappled}} /> Grappled</label>
-      <input type="text" name="flags.tides-mana.grappledBy" value="{{ship.grappledBy}}" placeholder="Grappled by (Actor ID)" />
+      <strong>Grappled</strong>
+      <span>{{#if ship.grappled}}Yes{{else}}No{{/if}}</span>
+      {{#if ship.grappledBy}}
+        <span>By: {{ship.grappledBy}}</span>
+      {{/if}}
     </div>
     <div class="status-block">
-      <label><input type="checkbox" name="flags.tides-mana.movementLocked" {{checked ship.movementLocked}} /> Movement Locked</label>
-      <small>Use after failed ramming or to lock movement.</small>
+      <strong>Movement Locked</strong>
+      <span>{{#if ship.movementLocked}}Yes{{else}}No{{/if}}</span>
     </div>
     <div class="status-block">
       <strong>Disabled Systems (next round)</strong>
-      <label><input type="checkbox" name="flags.tides-mana.disabledSystems.cannons" {{checked ship.disabledSystems.cannons}} /> Cannons</label>
-      <label><input type="checkbox" name="flags.tides-mana.disabledSystems.ramming" {{checked ship.disabledSystems.ramming}} /> Ramming</label>
-      <label><input type="checkbox" name="flags.tides-mana.disabledSystems.movement" {{checked ship.disabledSystems.movement}} /> Movement</label>
-      <label><input type="checkbox" name="flags.tides-mana.disabledSystems.engineer" {{checked ship.disabledSystems.engineer}} /> Engineer</label>
+      <span>Cannons: {{#if ship.disabledSystems.cannons}}Yes{{else}}No{{/if}}</span>
+      <span>Ramming: {{#if ship.disabledSystems.ramming}}Yes{{else}}No{{/if}}</span>
+      <span>Movement: {{#if ship.disabledSystems.movement}}Yes{{else}}No{{/if}}</span>
+      <span>Engineer: {{#if ship.disabledSystems.engineer}}Yes{{else}}No{{/if}}</span>
     </div>
   </section>
+  {{/if}}
 
+  {{#unless ship.editMode}}
+  {{#if tabs.combat}}
   <section class="actions">
-    <button type="submit" class="action-save">Save Changes</button>
     <button type="button" class="combat-join">Join Combat (Naval Init)</button>
     <button type="button" class="action" data-action="initiative">Roll Initiative</button>
     <button type="button" class="action" data-action="engineer">Engineer Recharge</button>
@@ -86,7 +119,11 @@
     <button type="button" class="action" data-action="ramming">Ramming (2 mana)</button>
     <button type="button" class="clear-effects">Clear Temp Effects</button>
   </section>
+  {{/if}}
+  {{/unless}}
 
+  {{#unless ship.editMode}}
+  {{#if tabs.status}}
   <section class="status-grid">
     <div class="status-block">
       <strong>Targeting</strong>
@@ -111,45 +148,65 @@
       {{/if}}
     </div>
   </section>
+  {{/if}}
+  {{/unless}}
 
+  {{#if tabs.stations}}
   <section class="stations">
     <header class="section-header">
       <h2>Stations</h2>
     </header>
-    <div class="stations-grid">
-      <label class="{{#if stationManned.captain}}manned{{else}}unmanned{{/if}}">Captain</label>
-      <select name="flags.tides-mana.stations.captain">
-        {{selectOptions pcOptions selected=ship.stations.captain}}
-      </select>
+    {{#if ship.editMode}}
+      <div class="stations-grid">
+        <label class="{{#if stationManned.captain}}manned{{else}}unmanned{{/if}}">Captain</label>
+        <select name="flags.tides-mana.stations.captain">
+          {{selectOptions pcOptions selected=ship.stations.captain}}
+        </select>
 
-      <label class="{{#if stationManned.helm}}manned{{else}}unmanned{{/if}}">Helm</label>
-      <select name="flags.tides-mana.stations.helm">
-        {{selectOptions pcOptions selected=ship.stations.helm}}
-      </select>
+        <label class="{{#if stationManned.helm}}manned{{else}}unmanned{{/if}}">Helm</label>
+        <select name="flags.tides-mana.stations.helm">
+          {{selectOptions pcOptions selected=ship.stations.helm}}
+        </select>
 
-      <label class="{{#if stationManned.gunnery}}manned{{else}}unmanned{{/if}}">Gunnery</label>
-      <select name="flags.tides-mana.stations.gunnery">
-        {{selectOptions pcOptions selected=ship.stations.gunnery}}
-      </select>
+        <label class="{{#if stationManned.gunnery}}manned{{else}}unmanned{{/if}}">Gunnery</label>
+        <select name="flags.tides-mana.stations.gunnery">
+          {{selectOptions pcOptions selected=ship.stations.gunnery}}
+        </select>
 
-      <label class="{{#if stationManned.engineer}}manned{{else}}unmanned{{/if}}">Engineer</label>
-      <select name="flags.tides-mana.stations.engineer">
-        {{selectOptions pcOptions selected=ship.stations.engineer}}
-      </select>
+        <label class="{{#if stationManned.engineer}}manned{{else}}unmanned{{/if}}">Engineer</label>
+        <select name="flags.tides-mana.stations.engineer">
+          {{selectOptions pcOptions selected=ship.stations.engineer}}
+        </select>
 
-      <label class="{{#if stationManned.boarding}}manned{{else}}unmanned{{/if}}">Boarding</label>
-      <select name="flags.tides-mana.stations.boarding">
-        {{selectOptions pcOptions selected=ship.stations.boarding}}
-      </select>
-    </div>
+        <label class="{{#if stationManned.boarding}}manned{{else}}unmanned{{/if}}">Boarding</label>
+        <select name="flags.tides-mana.stations.boarding">
+          {{selectOptions pcOptions selected=ship.stations.boarding}}
+        </select>
+      </div>
+    {{else}}
+      <div class="stations-readout">
+        <div class="station-row {{#if stationManned.captain}}manned{{else}}unmanned{{/if}}">Captain: {{stationNames.captain}}</div>
+        <div class="station-row {{#if stationManned.helm}}manned{{else}}unmanned{{/if}}">Helm: {{stationNames.helm}}</div>
+        <div class="station-row {{#if stationManned.gunnery}}manned{{else}}unmanned{{/if}}">Gunnery: {{stationNames.gunnery}}</div>
+        <div class="station-row {{#if stationManned.engineer}}manned{{else}}unmanned{{/if}}">Engineer: {{stationNames.engineer}}</div>
+        <div class="station-row {{#if stationManned.boarding}}manned{{else}}unmanned{{/if}}">Boarding: {{stationNames.boarding}}</div>
+      </div>
+    {{/if}}
   </section>
+  {{/if}}
 
+  {{#unless ship.editMode}}
+  {{#if tabs.combat}}
   <section class="movement-controls">
     <label>Movement (1 mana per square)</label>
     <input class="movement-squares" type="number" min="0" placeholder="Squares" />
     <button type="button" class="action" data-action="movement">Spend Movement Mana</button>
   </section>
+  {{/if}}
+  {{/unless}}
 
+  {{#if tabs.cannons}}
+  {{#if ship.editMode}}
   <section class="cannons">
     <header class="section-header">
       <h2>Cannons</h2>
@@ -187,4 +244,27 @@
       {{/each}}
     </ol>
   </section>
+  {{/if}}
+
+  {{#unless ship.editMode}}
+  <section class="cannons">
+    <header class="section-header">
+      <h2>Cannons</h2>
+    </header>
+    <ol class="cannon-list">
+      {{#each ship.cannons as |cannon|}}
+        <li class="cannon cannon-combat" data-cannon-id="{{cannon.id}}">
+          <div class="cannon-name">{{cannon.name}}</div>
+          <div class="cannon-meta">Facing: {{cannon.facing}}</div>
+          <select class="cannon-target">
+            {{selectOptions cannon.allowedTargets selected=cannon.targetDirection}}
+          </select>
+          <div class="cannon-meta">Count: {{cannon.count}}</div>
+          <button type="button" class="cannon-fire">Fire</button>
+        </li>
+      {{/each}}
+    </ol>
+  </section>
+  {{/unless}}
+  {{/if}}
 </form>
