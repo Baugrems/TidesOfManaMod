@@ -192,6 +192,7 @@ export class NavalShipSheet extends ActorSheet {
 
   async _onToggleMode(event) {
     event.preventDefault();
+    await this._saveFormState();
     const ship = getShipData(this.actor);
     await patchShip(this.actor, { editMode: !ship.editMode });
     this.render(false);
@@ -201,8 +202,23 @@ export class NavalShipSheet extends ActorSheet {
     event.preventDefault();
     const tab = event.currentTarget?.dataset?.tab;
     if (!tab) return;
+    await this._saveFormState();
     await patchShip(this.actor, { uiTab: tab });
     this.render(false);
+  }
+
+  async _saveFormState() {
+    if (!this.form) return;
+    const formData = new FormData(this.form);
+    const expanded = foundry.utils.expandObject(Object.fromEntries(formData));
+    const incoming = foundry.utils.getProperty(expanded, `flags.${MODULE_ID}`) ?? {};
+    if (Object.keys(incoming).length === 0) return;
+    const ship = foundry.utils.mergeObject(getShipData(this.actor), incoming, {
+      inplace: false,
+      overwrite: true
+    });
+    normalizeShipData(ship);
+    await updateShip(this.actor, ship);
   }
 
   async _ensureCombat() {

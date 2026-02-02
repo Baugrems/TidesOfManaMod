@@ -110,6 +110,13 @@
   {{#unless ship.editMode}}
   {{#if tabs.combat}}
   <section class="actions">
+    <div class="station-badges">
+      {{#if stationPermissions.captain}}<span class="station-badge">Captain Control</span>{{/if}}
+      {{#if stationPermissions.helm}}<span class="station-badge">Helm Control</span>{{/if}}
+      {{#if stationPermissions.gunnery}}<span class="station-badge">Gunnery Control</span>{{/if}}
+      {{#if stationPermissions.engineer}}<span class="station-badge">Engineer Control</span>{{/if}}
+      {{#if stationPermissions.boarding}}<span class="station-badge">Boarding Control</span>{{/if}}
+    </div>
     <button type="button" class="combat-join">Join Combat (Naval Init)</button>
     <button type="button" class="action" data-action="initiative">Roll Initiative</button>
     <button type="button" class="action" data-action="engineer">Engineer Recharge</button>
@@ -132,7 +139,7 @@
         <div>HP: {{target.hp}} / {{target.hpMax}}</div>
         <div>Integrity: {{target.integrity}}</div>
       {{else}}
-        <div>No target selected.</div>
+        <div class="hint">No target selected.</div>
       {{/if}}
     </div>
     <div class="status-block">
@@ -251,6 +258,9 @@
     <header class="section-header">
       <h2>Cannons</h2>
     </header>
+    {{#unless target}}
+      <div class="hint">Select a target token before firing to resolve hits vs Integrity.</div>
+    {{/unless}}
     <ol class="cannon-list">
       {{#each ship.cannons as |cannon|}}
         <li class="cannon cannon-combat" data-cannon-id="{{cannon.id}}">

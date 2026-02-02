@@ -115,6 +115,28 @@
   border-color: #0a2c31;
 }
 
+.tides-mana .station-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.tides-mana .station-badge {
+  background: rgba(9, 18, 21, 0.9);
+  border: 1px solid #1f6b73;
+  color: #f5d488;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.tides-mana .hint {
+  color: #b7a98c;
+  font-size: 12px;
+  font-style: italic;
+}
 .tides-mana .mode-toggle button {
   background: linear-gradient(135deg, #0f3f46, #1a6f77);
   color: #f5d488;
@@ -271,6 +293,26 @@
 
 .tides-mana-chat {
   font-family: "Georgia", "Palatino Linotype", serif;
+}
+
+.tides-mana-tooltip {
+  position: absolute;
+  z-index: 200;
+  background: rgba(8, 14, 17, 0.94);
+  border: 1px solid #1f6b73;
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: #f0e4c2;
+  font-family: "Georgia", "Palatino Linotype", serif;
+  font-size: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+}
+
+.tides-mana-tooltip .tooltip-name {
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: #f5d488;
 }
 
 .tides-mana .stations .section-header {
