@@ -574,26 +574,6 @@
   color: var(--tm-text);
 }
 
-.tides-mana-tooltip {
-  position: absolute;
-  z-index: 200;
-  background: rgba(8, 14, 17, 0.94);
-  border: 1px solid var(--tm-border);
-  border-radius: 10px;
-  padding: 8px 10px;
-  color: var(--tm-text);
-  font-family: var(--tm-font);
-  font-size: 12px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
-  pointer-events: none;
-}
-
-.tides-mana-tooltip .tooltip-name {
-  font-weight: 700;
-  margin-bottom: 4px;
-  color: var(--tm-accent-strong);
-}
-
 @media (max-width: 900px) {
   .tides-mana .sheet-header {
     grid-template-columns: 72px minmax(0, 1fr);
