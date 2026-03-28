@@ -2,7 +2,7 @@
   "id": "tides-mana",
   "title": "Tides of Mana: Naval Combat",
   "description": "System-agnostic ship combat tools for high-seas battles.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "authors": [
     {
       "name": "Tides Mana Mod"
@@ -19,5 +19,5 @@
     "styles/ship-sheet.css"
   ],
   "manifest": "https://raw.githubusercontent.com/Baugrems/TidesOfManaMod/main/module.json",
-  "download": "https://github.com/Baugrems/TidesOfManaMod/releases/download/v0.1.0/tides-mana.zip"
+  "download": "https://github.com/Baugrems/TidesOfManaMod/releases/download/v0.2.0/tides-mana.zip"
 }
